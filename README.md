@@ -40,40 +40,35 @@ Modules represent Terraform stacks.
 ### Scope Node
 ```
 <scope_name>:
-scope_type: <string> # e.g., account, tenant
-scope_variables: # optional variables available to child modules
-var1: value1
-var2: value2
-<child_module_or_scope>:
+  scope: <string> # e.g., account, tenant
+  variables: # optional variables available to child modules
+    var1: value1
+    var2: value2
+  <child_modules_or_scope>:
 ...
 ```
 
 ### Module Node
 ```
 <module_name>:
-source: <path_to_module> # required
-id: <string> # optional, auto-generated as <scope>.<module>
-dependencies: # optional, list of sources of modules this module depends on
-- compute
-- vpc
-inputs: # optional, maps dependency outputs or constants to Terraform variables
-var_name: dependency_module.output_name
-region:
-path: vpc.region # can reference outputs from dependencies
-default: us-east-1 # default value if dependency output missing
-variables: # optional, module-specific variables
-var_name: value
-mocked_outputs: # optional, for testing without applying Terraform
-output_name: value
+  source: <path_to_module> # required
+  dependencies: # optional, list of sources of modules this module depends on
+    - compute
+    - vpc
+  inputs: # optional, maps dependency outputs or constants to Terraform variables
+    <target_variable_name>: <value>
+    <target_variable_name>: 
+      from: <module_source>.<output_name>.<optional_output_attribut_path> or <scope_name>.<variable_name>.<optional_variable_attribut_path>
+      default: <default_value_if_output_not_found>
+  mocked_outputs: # optional, for testing without applying Terraform
 ```
 ### Source Defaults
 ```
 source_default:
 <module_source_name>:
-dependencies: [...] # default dependencies applied to all modules of this source
-inputs: {...} # default inputs merged into modules
-variables: {...} # default variables merged
-mocked_outputs: {...} # default mocked outputs
+  dependencies: [...] # default dependencies applied to all modules of this source
+  inputs: {...} # default inputs merged into modules
+  mocked_outputs: {...} # default mocked outputs
 ```
 ## How Dependencies Work
 1. Within Scope and Parent Scope
@@ -180,7 +175,7 @@ source_default:
 ```
 ## Usage
 ```bash
-tfstacks run infra/account-1/tenant-a/webapp.yaml apply
+tfstacks run --module-id account-2.tenant-c.webapp --infra-file deployements/infra1.yaml apply
 ```
 ## Terraform Actions
 - plan → Preview changes
