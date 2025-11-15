@@ -1,0 +1,90 @@
+account-1:
+  scope: account
+  variables:
+    name: account-2
+    type: aws
+    environment: dev
+  vpc:
+    source: "vpc"
+  compute:
+    source: "compute"
+  network:
+    source: "network"
+  tenant-c:
+    scope: tenant
+    variables:
+      users: 
+        - "user1"
+        - "user2"
+    webapp:
+      source: "webapp"
+      inputs:
+        app_name: "webapp-c"
+        subnet: 
+          from:  compute.subnets[1]
+account-2:
+  scope: account
+  variables:
+    name: account-2
+    type: aws
+    environment: dev
+  vpc:
+    source: "vpc"
+  compute:
+    source: "compute"
+  network:
+    source: "network"
+  tenant-c:
+    scope: tenant
+    variables:
+      users: 
+        - "user1"
+        - "user2"
+    webapp:
+      source: "webapp"
+      inputs:
+        app_name: "webapp-c"
+        subnet: 
+          from:  compute.subnets[1]
+
+source_default:
+  #first key must match source name
+  webapp:
+    dependencies:
+      - compute
+      - vpc
+      - network
+    inputs:
+      lb: 
+        from: vpc.main_lb
+      subnet: 
+        from: compute.subnets[0]
+      #region:
+      #  from: vpc.region
+      #  default: "us-east-1"
+      type: "webapp"
+  compute:
+    dependencies:
+      - "vpc"
+    inputs:
+      subnets_ids: 
+        from:  vpc.public_subnets
+      account_name:
+        from: account.name
+      subnet_addr:
+        from : vpc.vpc.ipam.subnet_addr[0]
+      vpc_cidr:
+        from : vpc.vpc.ipam.cidr
+      tags:
+        managed_by_terraform: "true"
+    mocked_outputs:
+      instance_id: "alb-111"
+      security_group_id: "sg-111"
+      subnets:
+        - "subnet-111"
+    vpc:
+      mocked_outputs:
+        main_lb: "alb-111"
+        public_subnets:
+          - "subnet-111"
+          - "subnet-222"
